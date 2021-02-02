@@ -46,9 +46,23 @@ def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
 
 def m_step(data, z_ig):
     n = data.shape[0]
-    piHat_g = np.sum(data, axis=0)/n
-    thetaHat_gj = z_ig.transpose().dot(data)/np.sum(z_ig, axis=0)
+    p = data.shape[1]
+    G = z_ig.shape[1]
+
+    piHat_g = np.sum(z_ig, axis=0)/n
+
+    thetaHat_gj = np.zeros((G, p), np.float64)
+    for g in range(G):
+        for j in range(p):
+            numer = 0
+            denom = 0
+            for i in range(n):
+                numer += z_ig[i, g]*data[i, j]
+                denom += z_ig[i, g]
+            thetaHat_gj[g, j] = numer / denom
+
     return {'pi_g': piHat_g, 'theta_gj': thetaHat_gj}
+
 
 
 def e_step_bernoulli(data, pi_g, theta_gj):
@@ -91,8 +105,7 @@ def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
     z_ig = np.zeros((n, G), np.float64)
 
     # randomly assign 1 for each row
-    for i in range(n):
-        z_ig[i, np.random.randint(G)]
+    z_ig = create_random_z_ig(n, G)
 
     diff = float('inf')
     iteration = 0
