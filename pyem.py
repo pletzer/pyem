@@ -70,6 +70,7 @@ def e_step_bernoulli(data, pi_g, theta_gj):
     n = data.shape[0]
     G = len(pi_g)
 
+    
     # array of size n x G x P
     th = np.tile(theta_gj, (n, 1, 1))
 
