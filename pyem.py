@@ -115,16 +115,19 @@ def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
 
         res = m_step(data, z_ig)
 
-        p_ig = e_step_bernoulli(data, res['p_ig'], res['theta_gj'])
+        res['p_ig'] = e_step_bernoulli(data, res['pi_g'], res['theta_gj'])
 
         # sample z_ig from p_ig
-        z_ig = p_ig
+        z_ig = res['p_ig']
+        diff = np.sum(abs(z_ig - z_old))
 
         iteration += 1
 
     if iteration >= maxiter:
         print(f'Warning: reached max number of iterations! diff = {diff}')
 
+    res['iterations'] = iteration
+    res['diff'] = diff
 
     return res
 
