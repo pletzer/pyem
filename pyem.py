@@ -11,6 +11,13 @@ def read_table(filename):
     return np.array(data)
 
 
+def create_random_z_ig(n, G):
+    z_ig = np.zeros((n, G), np.float64)
+    for i in range(n):
+        z_ig[ i, np.random.choice(G) ] = 1
+    return z_ig
+
+
 
 def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
 
