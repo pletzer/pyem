@@ -83,12 +83,12 @@ def e_step_bernoulli(data, pi_g, theta_gj):
     f_gi = np.prod(th**x * (1. - th)**(1 - x), axis=2)
 
     # n
-    sum_pi_f = p_ig.dot(f_gi)
+    sum_pi_f = pi_g.dot(f_gi)
 
     p_ig = np.zeros((n, G), np.float64)
     for g in range(G):
         for i in range(n):
-            p_ig[i, g] = pi_g[g] * f_ig[i, g] / sum_pi_f[i]
+            p_ig[i, g] = pi_g[g] * f_gi[g, i] / sum_pi_f[i]
 
 
     return p_ig
