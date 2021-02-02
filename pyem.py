@@ -1,6 +1,17 @@
 import numpy as np
 
 
+def read_table(filename):
+    data = []
+    with open(filename) as f:
+        # header
+        f.readline()
+        for line in f.readlines():
+            data.append([float(v) for v in line.split(' ')[1:]])
+    return np.array(data)
+
+
+
 def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
 
     G = pi_g.shape[0]
@@ -10,10 +21,10 @@ def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
     th = np.swapaxes(th, axis1=1, axis2=0)
 
     # G x n x P
-    x = np.tile(data, (G, 1, 1)
+    x = np.tile(data, (G, 1, 1))
 
     # G x n
-    f_gi = np.prod(th**x * (1. - th)**(1 - x), axis=2))
+    f_gi = np.prod(th**x * (1. - th)**(1 - x), axis=2)
 
     res = 0.
     for i in range(n):
@@ -45,10 +56,10 @@ def e_step_bernoulli(data, pi_g, theta_gj):
     th = np.swapaxes(th, axis1=1, axis2=0)
 
     # G x n x P
-    x = np.tile(data, (G, 1, 1)
+    x = np.tile(data, (G, 1, 1))
 
     # G x n
-    f_gi = np.prod(th**x * (1. - th)**(1 - x), axis=2))
+    f_gi = np.prod(th**x * (1. - th)**(1 - x), axis=2)
 
     # n
     sum_pi_f = p_ig.dot(f_gi)
