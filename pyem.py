@@ -102,9 +102,6 @@ def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
 
     n = data.shape[0]
 
-    # random initial guess 
-    z_ig = np.zeros((n, G), np.float64)
-
     # randomly assign 1 for each row
     z_ig = create_random_z_ig(n, G)
 
@@ -125,7 +122,7 @@ def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
         iteration += 1
 
     if iteration >= maxiter:
-        print(f'Warning: reached max number of iterations! diff = {diff}')
+        print(f'Warning: reached max number of iterations {maxiter}! diff = {diff}')
 
     res['iterations'] = iteration
     res['diff'] = diff
