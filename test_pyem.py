@@ -73,3 +73,10 @@ def test_cluster_row_bernoulli():
     assert abs(res['theta_gj'][1, 1] - (1.)) < 1.e-6
 
 
+def test_cluster_bi_bernoulli():
+    data = np.array([[0, 0, 0, 1], 
+                     [0, 0, 0, 1], 
+                     [1, 1, 1, 1]])
+    res = pyem.cluster_bi_bernoulli(data, R=2, C=2, maxiter=100, max_diff=1.e-6, seed=123)
+    print(res)
+

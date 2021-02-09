@@ -141,7 +141,7 @@ def m_step_bi(data, z_ir, x_jc):
     kappaHat_c = np.sum(x_jc, axis=0)/p
 
     thetaHat_rc = z_ir.transpose().dot(data.dot(x_jc))
-    thetaHat_rc /= n*p * piHat_r.reshape((R,1)).dot(kappa_c.reshape(1,C))
+    thetaHat_rc /= n*p * piHat_r.reshape((R,1)).dot(kappaHat_c.reshape(1,C))
 
     return {'pi_r': piHat_r, 'kappa_c': kappaHat_c, 'theta_rc': thetaHat_rc}
 
@@ -173,7 +173,7 @@ def e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc):
 
         zHat_ir[i, :] /= sum_r
 
-    g_ri = np.zeros((R, i), np.float64)
+    g_ri = np.zeros((R, n), np.float64)
     xHat_jc = np.zeros((p, C), np.float64)
     for j in range(p):
 
@@ -183,7 +183,7 @@ def e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc):
 
             for r in range(R):
                 for i in range(n):
-                    g_ri[c, j] = theta_rc[r, c]**data[i, j] * (1. - theta_rc[r, c])**(1. - data[i, j])
+                    g_ri[r, i] = theta_rc[r, c]**data[i, j] * (1. - theta_rc[r, c])**(1. - data[i, j])
 
             xHat_jc[j, c] = kappa_c[c] * np.prod( pi_r.dot(g_ri))
 
@@ -213,9 +213,9 @@ def cluster_bi_bernoulli(data, R=2, C=2, maxiter=100, max_diff=1.e-6, seed=123):
     iteration = 0
     while iteration < maxiter and diff > max_diff:
 
-        res = m_step(data, z_ir, x_jc)
+        res = m_step_bi(data, z_ir, x_jc)
 
-        res2 = e_step_bernoulli(data, res['pi_r'], res['kappa_c'], res['theta_rc'])
+        res2 = e_step_bi_bernoulli(data, res['pi_r'], res['kappa_c'], res['theta_rc'])
 
         diff = np.sum(abs(z_ir - res2['z_ir'])) + np.sum(abs(x_jc - res2['x_jc']))
 
