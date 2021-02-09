@@ -23,10 +23,10 @@ def test_create_random_zig():
     assert np.all(s_z == 1)
 
 
-def test_m_step():
+def test_m_step_row():
     data = np.array([[0, 1, 1], [0, 1, 1], [1, 0, 0], [1, 0, 0]])
     z_ig = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
-    res = pyem.m_step(data, z_ig)
+    res = pyem.m_step_row(data, z_ig)
     assert len(res['pi_g']) == 2
     assert np.sum(res['pi_g']) == 1
     assert res['theta_gj'].shape[0] == 2
@@ -39,12 +39,12 @@ def test_m_step():
     assert res['theta_gj'][1, 2] == 0
 
 
-def test_e_step_bernoulli():
+def test_e_step_row_bernoulli():
 
     data = np.array([[0, 1, 1], [0, 1, 1], [1, 0, 0], [1, 0, 0]])
     z_ig = np.array([[1, 0], [1, 0], [0, 1], [0, 1]])
-    res = pyem.m_step(data, z_ig)
-    p_ig = pyem.e_step_bernoulli(data, res['pi_g'], res['theta_gj'])
+    res = pyem.m_step_row(data, z_ig)
+    p_ig = pyem.e_step_row_bernoulli(data, res['pi_g'], res['theta_gj'])
 
     print(p_ig)
 
@@ -61,9 +61,9 @@ def test_e_step_bernoulli():
     assert p_ig[3, 1] == 1
 
 
-def test_cluster_bernoulli():
+def test_cluster_row_bernoulli():
     data = np.array([[0, 1, 1], [0, 1, 1], [1, 0, 0], [1, 0, 0]]) 
-    res = pyem.cluster_bernoulli(data, G=2, maxiter=10, max_diff=1.e-6, seed=123)
+    res = pyem.cluster_row_bernoulli(data, G=2, maxiter=10, max_diff=1.e-6, seed=123)
     assert abs(res['diff']) < 1.e-6
     assert abs(res['theta_gj'][0, 0] - (1.)) < 1.e-6
     assert abs(res['theta_gj'][0, 1] - (0.)) < 1.e-6

@@ -19,7 +19,7 @@ def create_random_z_ig(n, G):
 
 
 
-def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
+def likelihood_row_bernoulli(data, z_ig, pi_g, theta_gj):
 
     G = pi_g.shape[0]
     n = data.shape[0]
@@ -44,7 +44,7 @@ def likelihood_bernoulli(data, z_ig, pi_g, theta_gj):
 
 
 
-def m_step(data, z_ig):
+def m_step_row(data, z_ig):
     n = data.shape[0]
     p = data.shape[1]
     G = z_ig.shape[1]
@@ -65,7 +65,7 @@ def m_step(data, z_ig):
 
 
 
-def e_step_bernoulli(data, pi_g, theta_gj):
+def e_step_row_bernoulli(data, pi_g, theta_gj):
     
     n = data.shape[0]
     G = len(pi_g)
@@ -96,7 +96,7 @@ def e_step_bernoulli(data, pi_g, theta_gj):
 
 
 
-def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
+def cluster_row_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
 
     np.random.seed(seed)
 
@@ -111,13 +111,116 @@ def cluster_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
 
         z_old = z_ig.copy()
 
-        res = m_step(data, z_ig)
+        res = m_step_row(data, z_ig)
 
-        res['p_ig'] = e_step_bernoulli(data, res['pi_g'], res['theta_gj'])
+        res['p_ig'] = e_step_row_bernoulli(data, res['pi_g'], res['theta_gj'])
 
         # sample z_ig from p_ig
         z_ig = res['p_ig']
         diff = np.sum(abs(z_ig - z_old))
+
+        iteration += 1
+
+    if iteration >= maxiter:
+        print(f'Warning: reached max number of iterations {maxiter}! diff = {diff}')
+
+    res['iterations'] = iteration
+    res['diff'] = diff
+
+    return res
+
+
+def m_step_bi(data, z_ir, x_jc):
+    n = data.shape[0]
+    p = data.shape[1]
+    R = z_ir.shape[1]
+    C = x_jc.shape[1]
+
+    # Appendix A.1 of Multivariate methods using mixtures, correspondance analysis, scaling and patter-detection
+    piHat_r = np.sum(z_ir, axis=0)/n
+    kappaHat_c = np.sum(x_jc, axis=0)/p
+
+    thetaHat_rc = z_ir.transpose().dot(data.dot(x_jc))
+    thetaHat_rc /= n*p * piHat_r.reshape((R,1)).dot(kappa_c.reshape(1,C))
+
+    return {'pi_r': piHat_r, 'kappa_c': kappaHat_c, 'theta_rc': thetaHat_rc}
+
+
+
+def e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc):
+    
+    n = data.shape[0]
+    p = data.shape[1]
+    R = len(pi_r)
+    C = len(kappa_c)
+
+
+    g_cj = np.zeros((C, p), np.float64)
+    zHat_ir = np.zeros((n, R), np.float64)
+    for i in range(n):
+
+        sum_r = 0.
+
+        for r in range(R):
+
+            for c in range(C):
+                for j in range(p):
+                    g_cj[c, j] = theta_rc[r, c]**data[i, j] * (1. - theta_rc[r, c])**(1. - data[i, j])
+
+            zHat_ir[i, r] = pi_r[r] * np.prod( kappa_c.dot(g_cj))
+
+            sum_r += zHat_ir[i, r]
+
+        zHat_ir[i, :] /= sum_r
+
+    g_ri = np.zeros((R, i), np.float64)
+    xHat_jc = np.zeros((p, C), np.float64)
+    for j in range(p):
+
+        sum_c = 0.
+
+        for c in range(C):
+
+            for r in range(R):
+                for i in range(n):
+                    g_ri[c, j] = theta_rc[r, c]**data[i, j] * (1. - theta_rc[r, c])**(1. - data[i, j])
+
+            xHat_jc[j, c] = kappa_c[c] * np.prod( pi_r.dot(g_ri))
+
+            sum_c += xHat_jc[j, c]
+
+        xHat_jc[j, :] /= sum_c
+
+    
+    return {'z_ir': zHat_ir, 'x_jc': xHat_jc}
+
+
+
+def cluster_bi_bernoulli(data, R=2, C=2, maxiter=100, max_diff=1.e-6, seed=123):
+
+    np.random.seed(seed)
+
+    n = data.shape[0]
+    p = data.shape[1]
+
+    # randomly assign 1 for each row
+    z_ir = create_random_z_ig(n, R)
+
+    # randomly assign 1 to each column
+    x_jc = create_random_z_ig(p, C)
+
+    diff = float('inf')
+    iteration = 0
+    while iteration < maxiter and diff > max_diff:
+
+        res = m_step(data, z_ir, x_jc)
+
+        res2 = e_step_bernoulli(data, res['pi_r'], res['kappa_c'], res['theta_rc'])
+
+        diff = np.sum(abs(z_ir - res2['z_ir'])) + np.sum(abs(x_jc - res2['x_jc']))
+
+        z_ir = res2['z_ir']
+        x_jc = res2['x_jc']
 
         iteration += 1
 
