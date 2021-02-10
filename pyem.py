@@ -111,7 +111,7 @@ def cluster_row_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123):
 
         z_old = z_ig.copy()
 
-        res = m_step_row(data, z_ig)
+        res = m_step_row(data, z_ig) # theta_gj
 
         res['p_ig'] = e_step_row_bernoulli(data, res['pi_g'], res['theta_gj'])
 
@@ -141,6 +141,12 @@ def m_step_bi(data, z_ir, x_jc):
     kappaHat_c = np.sum(x_jc, axis=0)/p
 
     thetaHat_rc = z_ir.transpose().dot(data.dot(x_jc))
+
+    # print(f'n = {n} p = {p} R = {R} C = {C}')
+    # print(f'piHat_r = {piHat_r}')
+    # print(f'kappaHat_c = {kappaHat_c}')
+    # print(f'x_jc = {x_jc}')
+
     thetaHat_rc /= n*p * piHat_r.reshape((R,1)).dot(kappaHat_c.reshape(1,C))
 
     return {'pi_r': piHat_r, 'kappa_c': kappaHat_c, 'theta_rc': thetaHat_rc}
@@ -196,7 +202,7 @@ def e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc):
 
 
 
-def cluster_bi_bernoulli(data, R=2, C=2, maxiter=100, max_diff=1.e-6, seed=123):
+def cluster_bi_bernoulli(data, R=2, C=1, maxiter=100, max_diff=1.e-6, seed=123):
 
     np.random.seed(seed)
 
@@ -221,6 +227,41 @@ def cluster_bi_bernoulli(data, R=2, C=2, maxiter=100, max_diff=1.e-6, seed=123):
 
         z_ir = res2['z_ir']
         x_jc = res2['x_jc']
+
+        iteration += 1
+
+    if iteration >= maxiter:
+        print(f'Warning: reached max number of iterations {maxiter}! diff = {diff}')
+
+    res['iterations'] = iteration
+    res['diff'] = diff
+
+    return res
+
+
+def cluster_bi_bernoulli_em(data, R=2, C=1, maxiter=100, max_diff=1.e-6, seed=123):
+
+    np.random.seed(seed)
+
+    n = data.shape[0]
+    p = data.shape[1]
+
+    pi_r = np.ones((R,), np.float64) / R
+    kappa_c = np.ones((C,), np.float64) / C
+    theta_rc = np.ones((R, C), np.float64) / (R*C)
+
+    diff = float('inf')
+    iteration = 0
+    while iteration < maxiter and diff > max_diff:
+
+        res2 = e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc)
+        res = m_step_bi(data, res2['z_ir'], res2['x_jc'])
+
+        diff = np.sum(abs(res['theta_rc'] - theta_rc))
+
+        theta_rc = res['theta_rc']
+        pi_r = res['pi_r']
+        kappa_c = res['kappa_c']
 
         iteration += 1
 
