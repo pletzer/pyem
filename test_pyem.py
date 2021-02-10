@@ -198,10 +198,38 @@ def test_m_step_bi():
         theta_rc = resM['theta_rc']
         print(f'iteration = {iteration} theta_rc = {theta_rc}')
 
-
     assert np.max(theta_rc) <= 1.
     assert np.max(theta_rc) >= 0.
 
+
+def test_cluster_bi_bernoulli_trees_em():
+
+    R = 2
+    C = 2
+
+    data = np.array(np.loadtxt('data/binary.txt'), np.float64)
+    assert data.shape[0] == 39
+    assert data.shape[1] == 13
+
+    res = pyem.cluster_bi_bernoulli_em(data, R=R, C=C, maxiter=1000, max_diff=1.e-10, seed=123)
+
+    print(res)
+    assert False
+
+
+def test_cluster_bi_bernoulli_trees_me():
+
+    R = 2
+    C = 2
+
+    data = np.array(np.loadtxt('data/binary.txt'), np.float64)
+    assert data.shape[0] == 39
+    assert data.shape[1] == 13
+
+    res = pyem.cluster_bi_bernoulli_me(data, R=R, C=C, maxiter=1000, max_diff=1.e-10, seed=123)
+
+    print(res)
+    assert False
 
 
 def xtest_cluster_bi_bernoulli():
@@ -221,7 +249,7 @@ def xtest_cluster_bi_bernoulli():
 
 
     #resR = pyem.cluster_row_bernoulli(data, G=2, maxiter=100, max_diff=1.e-6, seed=123)
-    resB = pyem.cluster_bi_bernoulli2(data, R=2, C=3, maxiter=100, max_diff=1.e-6, seed=123)
+    resB = pyem.cluster_bi_bernoulli_em(data, R=2, C=3, maxiter=100, max_diff=1.e-6, seed=123)
 
     print(resB)
 

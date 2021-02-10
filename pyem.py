@@ -202,7 +202,7 @@ def e_step_bi_bernoulli(data, pi_r, kappa_c, theta_rc):
 
 
 
-def cluster_bi_bernoulli(data, R=2, C=1, maxiter=100, max_diff=1.e-6, seed=123):
+def cluster_bi_bernoulli_me(data, R=2, C=1, maxiter=100, max_diff=1.e-6, seed=123):
 
     np.random.seed(seed)
 
@@ -248,7 +248,7 @@ def cluster_bi_bernoulli_em(data, R=2, C=1, maxiter=100, max_diff=1.e-6, seed=12
 
     pi_r = np.ones((R,), np.float64) / R
     kappa_c = np.ones((C,), np.float64) / C
-    theta_rc = np.ones((R, C), np.float64) / (R*C)
+    theta_rc = np.random.random_sample((R, C))
 
     diff = float('inf')
     iteration = 0
